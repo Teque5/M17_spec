@@ -13,10 +13,16 @@ on:
       - main
 
 jobs:
-  build:
+
+  build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,36 +32,8 @@ jobs:
         with:
           root_file: M17_spec.tex
 
-  deploy:
-    needs: build
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Upload Pages artifact
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: github-pages
           path: M17_spec.pdf
-
-      # - name: Upload Pages artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: github-pages
-      #     path: M17_spec.pdf
-
-      # - name: Deploy to Pages (main branch only)
-      #   # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      #   uses: actions/deploy-pages@v4
-
-      # - name: Deploy Preview (PR only)
-      #   if: github.event_name == 'pull_request'
-      #   uses: peaceiris/actions-gh-pages@v4
-      #   with:
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     publish_dir: ./public
-      #     destination_dir: pr-${{ github.event.number }}

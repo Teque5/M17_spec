@@ -32,7 +32,7 @@ jobs:
         with:
           root_file: M17_spec.tex
 
-      - name: Upload PDF artifact
+      - name: Upload PDF
         uses: actions/upload-artifact@v4
         with:
           name: specification
@@ -43,3 +43,12 @@ jobs:
         uses: actions/deploy-pages@v4
         with:
           artifact_name: specification
+
+      - name: Deploy PR Preview
+        if: github.event_name == 'pull_request'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          destination_dir: pr-${{ github.event.number }}
+          keep_files: true

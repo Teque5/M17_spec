@@ -11,35 +11,40 @@ on:
   pull_request:
     branches:
       - main
+        build:
+          runs-on: ubuntu-latest
+          permissions:
+            contents: write
+          steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    # grant GITHUB_TOKEN permissions for pages deployment
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+            - name: Build
+              uses: xu-cheng/latex-action@v4
+              with:
+                root_file: M17_spec.tex
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+            - name: Prepare Pages artifact
+              run: |
+                mkdir -p public
+                cp M17_spec.pdf public/
 
-      - name: Build
-        # wraps a LaTeX build environment
-        uses: xu-cheng/latex-action@v4
-        with:
-          root_file: M17_spec.tex
+            - name: Upload Pages artifact
+              uses: actions/upload-artifact@v4
+              with:
+                name: github-pages
+                path: public
 
-      - name: Upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: Specification
-          path: M17_spec.pdf
+            - name: Deploy to GitHub Pages (main)
+              if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+              uses: actions/deploy-pages@v4
 
-      - name: Deploy
-        # only deploy on pushes to main, not on PRs
+            - name: Deploy PR Preview
+              if: github.event_name == 'pull_request'
+              uses: peaceiris/actions-gh-pages@v4
+              with:
+                github_token: ${{ secrets.GITHUB_TOKEN }}
+                publish_dir: ./public
+                destination_dir: pr-${{ github.event.number }}
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/deploy-pages@v4

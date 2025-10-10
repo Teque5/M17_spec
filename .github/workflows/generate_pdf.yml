@@ -32,23 +32,19 @@ jobs:
         with:
           root_file: M17_spec.tex
 
-      - name: Upload PDF
-        uses: actions/upload-artifact@v4
+      - name: Move PDF to public/
+        run: |
+          mkdir -p public
+          mv M17_spec.pdf public/
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload PDF artifact for GitHub Pages
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: specification
-          path: M17_spec.pdf
+          path: public
 
       - name: Deploy to GitHub Pages
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/deploy-pages@v4
-        with:
-          artifact_name: specification
-
-      - name: Deploy PR Preview
-        if: github.event_name == 'pull_request'
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
-          destination_dir: pr-${{ github.event.number }}
-          keep_files: true

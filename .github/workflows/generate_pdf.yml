@@ -1,20 +1,20 @@
 name: Generate PDF
 
 on:
-  # allows manual triggering of the workflow
+  # allows manual triggering
   workflow_dispatch:
-  # run on changes to main
   push:
     branches:
-      - main
-  # run on PRs to main
+      - '**'
   pull_request:
     branches:
-      - main
+      - '**'
 
 jobs:
 
+  # runs on main branch pushes
   build-and-deploy:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -37,14 +37,38 @@ jobs:
           mkdir -p public
           mv M17_spec.pdf public/
 
-      - name: Setup GitHub Pages
+      - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Upload PDF artifact for GitHub Pages
+      - name: Upload PDF
         uses: actions/upload-pages-artifact@v3
         with:
           path: public
 
-      - name: Deploy to GitHub Pages
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Deploy to Pages
         uses: actions/deploy-pages@v4
+
+      - name: Post URL to Summary
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: echo "🚀 [View the latest PDF](https://m17-project.github.io/M17_spec/M17_spec.pdf)" >> $GITHUB_STEP_SUMMARY
+
+  # runs on PRs and non-main branch pushes
+  build-artifact-only:
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Build PDF
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: M17_spec.tex
+
+      - name: Upload PDF artifact for branch/PR
+        uses: actions/upload-artifact@v4
+        with:
+          name: M17_spec
+          path: M17_spec.pdf

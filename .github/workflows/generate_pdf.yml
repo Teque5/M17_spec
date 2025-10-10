@@ -24,16 +24,22 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout
+      - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Build
+      - name: Build PDF
         uses: xu-cheng/latex-action@v4
         with:
           root_file: M17_spec.tex
 
-      - name: Upload
+      - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
         with:
-          name: github-pages
+          name: specification
           path: M17_spec.pdf
+
+      - name: Deploy to GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: specification
